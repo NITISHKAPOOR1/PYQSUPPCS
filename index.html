@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Knowledge Study Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Vibrant Gradient Background */
+            --bg-gradient: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            
+            /* Subject Specific Colors */
+            --history-color: #ff9f43;    /* Orange */
+            --geography-color: #2ed573;  /* Emerald Green */
+            --polity-color: #2e86de;     /* Strong Blue */
+            --economy-color: #9b59b6;    /* Purple */
+            --science-color: #ff5252;    /* Red */
+            --current-color: #00d2d3;    /* Cyan */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--bg-gradient);
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        h1 { margin: 0; font-size: 2.2em; font-weight: 700; text-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+        .subtitle { opacity: 0.95; font-size: 1em; font-weight: 400; margin-top: 5px; }
+
+        .dashboard, .chapters-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .subject {
+            cursor: pointer;
+            background: white;
+            padding: 40px 20px;
+            border-radius: 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border-top: 8px solid #ccc;
+        }
+
+        .subject:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        /* --- BOUNDARY ICON STYLE --- */
+        .book-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            transition: transform 0.3s ease;
+            
+            /* These lines create the "Boundary" (Outline) effect */
+            color: white; /* Make the inside white (matches card) */
+            -webkit-text-fill-color: white; 
+            -webkit-text-stroke-width: 2px; /* The width of the boundary */
+        }
+
+        .subject:hover .book-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* --- COLOR CODING (Applying colors to the boundary stroke) --- */
+        
+        /* History */
+        .subject[data-subject="History"] { border-top-color: var(--history-color); }
+        .subject[data-subject="History"] .book-icon { -webkit-text-stroke-color: var(--history-color); }
+        
+        /* Geography */
+        .subject[data-subject="Geography"] { border-top-color: var(--geography-color); }
+        .subject[data-subject="Geography"] .book-icon { -webkit-text-stroke-color: var(--geography-color); }
+
+        /* Polity */
+        .subject[data-subject="Polity"] { border-top-color: var(--polity-color); }
+        .subject[data-subject="Polity"] .book-icon { -webkit-text-stroke-color: var(--polity-color); }
+
+        /* Economy */
+        .subject[data-subject="Economy"] { border-top-color: var(--economy-color); }
+        .subject[data-subject="Economy"] .book-icon { -webkit-text-stroke-color: var(--economy-color); }
+
+        /* General Science */
+        .subject[data-subject="Science"] { border-top-color: var(--science-color); }
+        .subject[data-subject="Science"] .book-icon { -webkit-text-stroke-color: var(--science-color); }
+
+        /* Current Affairs */
+        .subject[data-subject="Current"] { border-top-color: var(--current-color); }
+        .subject[data-subject="Current"] .book-icon { -webkit-text-stroke-color: var(--current-color); }
+
+
+        .subject-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+
+        .mcq-badge {
+            display: inline-block;
+            background: #f1f2f6;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8em;
+            color: #636e72;
+        }
+
+        .topics { display: none; }
+
+        /* --- CHAPTER VIEW STYLES --- */
+        .chapters-view {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .back-button {
+            background: #2d3436;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 40px;
+            transition: background 0.3s;
+        }
+        .back-button:hover { background: #000; }
+
+        #chapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .topic-item a {
+            text-decoration: none;
+            color: #2d3436;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border: 1px solid #f1f2f6;
+        }
+
+        .topic-item a:hover {
+            background: var(--bg-gradient);
+            color: white;
+            transform: translateY(-5px);
+            border-color: transparent;
+        }
+
+        .topic-name {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .source-text {
+            font-size: 0.85em;
+            opacity: 0.7;
+            font-style: italic;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 8px;
+            margin-top: auto;
+        }
+
+        .topic-item a:hover .source-text {
+            border-top-color: rgba(255,255,255,0.3);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="main-header">
+        <h1>GK Master Portal</h1>
+        <p class="subtitle">Select a subject to begin your practice</p>
+    </header>
+
+    <div id="dashboard" class="dashboard">
+        <div class="subjects-grid">
+            
+            <div class="subject" data-subject="History">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">History</div>
+                <div class="mcq-badge">Ancient, Medieval, Modern</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Indus Valley Civilization</span>
+                            <span class="source-text">Source: NCERT Class 12</span>
+                        </a>
+                    </div>
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Indian Freedom Struggle</span>
+                            <span class="source-text">Source: Spectrum History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject" data-subject="Geography">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">Geography</div>
+                <div class="mcq-badge">Physical & Indian Geography</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Rivers of India</span>
+                            <span class="source-text">Source: Lucent GK</span>
+                        </a>
+                    </div>
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Solar System & Planets</span>
+                            <span class="source-text">Source: Previous Year SSC Exam</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject" data-subject="Polity">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">Indian Polity</div>
+                <div class="mcq-badge">Constitution & Articles</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Preamble & Fundamental Rights</span>
+                            <span class="source-text">Source: M. Laxmikanth</span>
+                        </a>
+                    </div>
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Parliament & President</span>
+                            <span class="source-text">Source: Constitution of India</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject" data-subject="Economy">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">Indian Economy</div>
+                <div class="mcq-badge">Budget, Banking, Schemes</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Five Year Plans</span>
+                            <span class="source-text">Source: Ramesh Singh</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject" data-subject="Science">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">General Science</div>
+                <div class="mcq-badge">Physics, Chem, Bio</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Vitamins & Diseases</span>
+                            <span class="source-text">Source: NCERT Science</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subject" data-subject="Current">
+                <i class="fas fa-book book-icon"></i>
+                <div class="subject-name">Current Affairs</div>
+                <div class="mcq-badge">National & International</div>
+                <div class="topics">
+                    <div class="topic-item">
+                        <a href="YOUR_GOOGLE_FORM_LINK" target="_blank">
+                            <span class="topic-name">Awards & Honours 2024</span>
+                            <span class="source-text">Source: The Hindu Newspaper</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="chapters-view" class="chapters-view">
+        <button id="back-to-dashboard" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+        <h2 id="chapters-title" style="color: #2d3436; margin-bottom: 30px; font-size: 2em;"></h2>
+        <div id="chapters-grid"></div>
+    </div>
+
+    <script>
+        const subjects = document.querySelectorAll('.subject');
+        const dashboard = document.getElementById('dashboard');
+        const header = document.getElementById('main-header');
+        const chaptersView = document.getElementById('chapters-view');
+        const chaptersTitle = document.getElementById('chapters-title');
+        const chaptersGrid = document.getElementById('chapters-grid');
+        const backButton = document.getElementById('back-to-dashboard');
+
+        subjects.forEach(subject => {
+            subject.addEventListener('click', function() {
+                const subjectName = this.querySelector('.subject-name').textContent;
+                const topics = this.querySelector('.topics').innerHTML;
+                
+                chaptersTitle.textContent = subjectName + " Quizzes";
+                chaptersGrid.innerHTML = topics;
+                
+                dashboard.style.display = 'none';
+                header.style.display = 'none';
+                chaptersView.style.display = 'block';
+                window.scrollTo(0, 0);
+            });
+        });
+
+        backButton.addEventListener('click', function() {
+            chaptersView.style.display = 'none';
+            header.style.display = 'block';
+            dashboard.style.display = 'block';
+            window.scrollTo(0, 0);
+        });
+    </script>
+</body>
+</html>
