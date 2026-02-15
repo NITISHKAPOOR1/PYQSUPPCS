@@ -256,6 +256,18 @@
         .topic-link.locked .action-arrow.fa-lock { color: #ff7675; }
         .topic-link.locked { opacity: 0.9; }
 
+        /* --- EXAM IFRAME VIEWER (NEW) --- */
+        #quiz-iframe-container { display: none; padding-bottom: 50px; }
+        .iframe-wrapper {
+            width: 100%; 
+            height: 80vh; 
+            background: white; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e8ecf1;
+        }
+
         .view-section { display: none; }
         .view-section.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -339,7 +351,7 @@
                         <div class="mcq-badge">Ancient, Medieval, Modern</div>
                         <div class="topics">
                             <div class="topic-item">
-                                <a href="https://docs.google.com/forms/your-history-link" target="_blank" class="topic-link">
+                                <a href="https://forms.gle/U2xTXM2yK7M8q2Us5" class="topic-link">
                                     <div class="icon-box"><i class="fas fa-clipboard-list"></i></div>
                                     <div><span class="topic-name">Indus Valley</span><span class="source-text">Source: NCERT</span></div>
                                     <i class="fas fa-chevron-right action-arrow"></i>
@@ -642,6 +654,19 @@
                 <div id="chapters-grid"></div>
             </div>
 
+            <div id="quiz-iframe-container">
+                <div class="subject-header" style="border-left: 5px solid #764ba2;">
+                    <button id="close-quiz-btn" class="back-button">
+                        <i class="fas fa-times"></i> End Exam
+                    </button>
+                    <h2 id="iframe-title" style="color: var(--primary-text);">Exam Name</h2>
+                    <div style="width: 80px;"></div>
+                </div>
+                <div class="iframe-wrapper">
+                    <iframe id="quiz-iframe" src="" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0">Loading Exam...</iframe>
+                </div>
+            </div>
+
     </div>
 
     <div id="toast"></div>
@@ -789,6 +814,10 @@
             communityView.classList.remove('active');
             chaptersView.style.display = 'none'; 
 
+            // HIDE IFRAME ON TAB SWITCH
+            document.getElementById('quiz-iframe-container').style.display = 'none';
+            document.getElementById('quiz-iframe').src = "";
+
             btnQuiz.classList.remove('active');
             btnInfo.classList.remove('active');
             btnCommunity.classList.remove('active');
@@ -857,7 +886,7 @@
             setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
         }
 
-        // --- CLICK INTERCEPTION ---
+        // --- CLICK INTERCEPTION & IFRAME LOGIC ---
         document.getElementById('chapters-grid').addEventListener('click', function(e) {
             const link = e.target.closest('.topic-link');
             if (link) {
@@ -874,14 +903,37 @@
                 }
 
                 // 2. Handle Unlocked Chapters
-                const href = link.getAttribute('href');
+                let href = link.getAttribute('href');
                 if (!href || href === '#' || href === '' || href.trim() === '') {
                     showToast("Quiz Will Upload soon 🚀"); 
                 } else {
-                    window.open(href, '_blank');
+                    // Force embedded UI for Google Forms
+                    if(href.includes('docs.google.com/forms') && !href.includes('embedded=true')) {
+                        href += (href.includes('?') ? '&' : '?') + 'embedded=true';
+                    }
+
+                    // Hide Chapters and show Iframe
+                    document.getElementById('chapters-view').style.display = 'none';
+                    document.getElementById('iframe-title').textContent = link.querySelector('.topic-name').textContent;
+                    
+                    const iframeContainer = document.getElementById('quiz-iframe-container');
+                    const iframe = document.getElementById('quiz-iframe');
+                    
+                    iframe.src = href;
+                    iframeContainer.style.display = 'block';
+                    window.scrollTo(0, 0);
                 }
             }
         });
+
+        // Close Exam Button
+        document.getElementById('close-quiz-btn').addEventListener('click', function() {
+            document.getElementById('quiz-iframe-container').style.display = 'none';
+            document.getElementById('quiz-iframe').src = ""; // Clear iframe so it stops running
+            document.getElementById('chapters-view').style.display = 'block';
+            window.scrollTo(0, 0);
+        });
+
     </script>
 </body>
 </html>
