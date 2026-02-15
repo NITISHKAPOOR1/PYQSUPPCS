@@ -247,7 +247,6 @@
         .back-button:hover { background: #002855; color: white; transform: translateX(-3px); }
         #chapters-grid { display: flex; flex-direction: column; gap: 15px; }
         
-        /* STANDARD TOPIC LINK */
         .topic-link { display: flex; align-items: center; background: white; padding: 25px; border-radius: 18px; text-decoration: none; color: var(--primary-text); transition: all 0.3s; border: 1px solid transparent; box-shadow: 0 4px 6px rgba(0,0,0,0.02); position: relative; overflow: hidden; }
         .topic-link:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: rgba(0, 40, 85, 0.2); }
         .icon-box { width: 50px; height: 50px; background: #e8ecf1; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-size: 20px; color: #002855; transition: all 0.3s;}
@@ -258,6 +257,18 @@
         .action-arrow { color: #ccc; font-size: 1.2em; margin-left: auto; transition: all 0.3s; }
         .topic-link.locked .action-arrow.fa-lock { color: #C8102E; }
         .topic-link.locked { opacity: 0.9; }
+
+        /* --- EXAM IFRAME VIEWER (NEW) --- */
+        #quiz-iframe-container { display: none; padding-bottom: 50px; }
+        .iframe-wrapper {
+            width: 100%; 
+            height: 80vh; 
+            background: white; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e8ecf1;
+        }
 
         .view-section { display: none; }
         .view-section.active { display: block; animation: fadeIn 0.4s ease; }
@@ -291,13 +302,11 @@
 
     <div id="login-overlay">
         <div class="login-card">
-            
             <div class="notice-container">
                 <div>Hello Dear User</div>
                 <div>Welcome to our page</div>
                 <div id="typewriter"></div>
             </div>
-
             <h2>Welcome Back</h2>
             <div class="input-group">
                 <label>User ID</label>
@@ -309,7 +318,6 @@
             </div>
             <button class="login-btn" onclick="handleLogin()">Login</button>
             <button class="login-btn remove-btn" id="removeCredentialsBtn" onclick="removeCredentialsBtn()">Remove Login Credentials</button>
-            
             <div id="loginStatus" class="login-status"></div>
         </div>
     </div>
@@ -319,7 +327,6 @@
             <button id="logout-btn" onclick="handleLogout()">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
-
             <h1>Punjab Police Portal</h1>
             <p class="subtitle">Previous Year Questions & Exam Preparation</p>
         </header>
@@ -347,7 +354,7 @@
                         <div class="mcq-badge">Latest Papers</div>
                         <div class="topics">
                             <div class="topic-item">
-                                <a href="https://docs.google.com/forms/your-form-link" target="_blank" class="topic-link">
+                                <a href="https://forms.gle/U2xTXM2yK7M8q2Us5" class="topic-link">
                                     <div class="icon-box"><i class="fas fa-file-alt"></i></div>
                                     <div><span class="topic-name">Sub-Inspector Paper 1</span><span class="source-text">Morning Shift</span></div>
                                     <i class="fas fa-chevron-right action-arrow"></i>
@@ -549,6 +556,20 @@
                 <div id="chapters-grid"></div>
             </div>
 
+            <div id="quiz-iframe-container">
+                <div class="subject-header" style="border-left: 5px solid #d4af37;">
+                    <button id="close-quiz-btn" class="back-button">
+                        <i class="fas fa-times"></i> End Exam
+                    </button>
+                    <h2 id="iframe-title" style="color: #002855;">Exam Name</h2>
+                    <div style="width: 80px;"></div>
+                </div>
+                <div class="iframe-wrapper">
+                    <iframe id="quiz-iframe" src="" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0">Loading Exam...</iframe>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <div id="toast"></div>
@@ -559,25 +580,21 @@
         const infoView = document.getElementById('info-view');
         const communityView = document.getElementById('community-view');
         const chaptersView = document.getElementById('chapters-view');
+        const quizIframeContainer = document.getElementById('quiz-iframe-container');
+        const quizIframe = document.getElementById('quiz-iframe');
+        const iframeTitle = document.getElementById('iframe-title');
+        
         const header = document.getElementById('main-header');
         const navTabs = document.querySelector('.nav-tabs');
-        
-        const btnQuiz = document.getElementById('btn-quiz');
-        const btnInfo = document.getElementById('btn-info');
-        const btnCommunity = document.getElementById('btn-community');
-        
-        const subjects = document.querySelectorAll('.subject');
         
         const loginOverlay = document.getElementById('login-overlay');
         const mainApp = document.getElementById('main-app');
         const loginStatus = document.getElementById('loginStatus');
 
-        // **********************************************************
-        // PASTE YOUR DEPLOYED GOOGLE SCRIPT WEB APP URL HERE
-        // **********************************************************
+        // GOOGLE SCRIPT URL
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqk_QvsgBLbtaiAUuErRD_kfHZnzKjMqSrmqp6BmWBP_UrQEYcrmKgzPgW_F_wKJIR/exec'; 
 
-        // Typewriting effect function (Generic Login Instruction)
+        // Typewriting effect
         const typeText = "Please enter your valid ID and Password";
         let typeIndex = 0;
         function typeEffect() {
@@ -588,14 +605,10 @@
             }
         }
 
-        // Auto-fill Saved Credentials from Dashboard LocalStorage
         document.addEventListener("DOMContentLoaded", function() {
-            typeEffect(); // Start typewriter effect
-
-            // using the SAME keys as the main dashboard
+            typeEffect(); 
             const savedId = localStorage.getItem("pyq_userid");
             const savedPass = localStorage.getItem("pyq_password");
-            
             if (savedId && savedPass) {
                 document.getElementById('userId').value = savedId;
                 document.getElementById('userPass').value = savedPass;
@@ -617,15 +630,10 @@
                 return;
             }
 
-            // Connect to Google Sheet via secure POST
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ 
-                        id: id, 
-                        password: pass,
-                        requested_course: "Punjab Police" // YEH BATAYEGA KI PUNJAB POLICE KA ACCESS CHAHIYE
-                    })
+                    body: JSON.stringify({ id: id, password: pass, requested_course: "Punjab Police" })
                 });
                 
                 const result = await response.json();
@@ -634,35 +642,28 @@
                     saveCredentials(id, pass);
                     loginSuccess();
                 } else {
-                    // This triggers if ID/Pass is wrong OR if they don't have "Punjab Police" in their row
                     loginStatus.innerHTML = result.message;
                     loginStatus.style.color = "red";
-                    
-                    // Clear memory so they don't get stuck in an endless loop
                     localStorage.removeItem("pyq_userid");
                     localStorage.removeItem("pyq_password");
                     document.getElementById('removeCredentialsBtn').style.display = 'none';
                 }
             } catch (error) {
                 loginStatus.textContent = "Connection Error. Check URL or network.";
-                console.error("Login Error:", error);
             }
         }
 
-        // Helper to save credentials locally
         function saveCredentials(id, pass) {
             localStorage.setItem("pyq_userid", id);
             localStorage.setItem("pyq_password", pass);
             document.getElementById('removeCredentialsBtn').style.display = 'inline-block';
         }
 
-        // Function called ONLY by the "Remove Login Credentials" button
         function removeCredentialsBtn() {
             localStorage.removeItem("pyq_userid");
             localStorage.removeItem("pyq_password");
             document.getElementById('userId').value = '';
             document.getElementById('userPass').value = '';
-            
             document.getElementById('removeCredentialsBtn').style.display = 'none';
             loginStatus.textContent = "Saved credentials removed.";
             loginStatus.style.color = "green";
@@ -674,114 +675,73 @@
             setTimeout(() => {
                 loginOverlay.style.display = 'none';
                 mainApp.style.display = 'block';
-                loginStatus.textContent = ''; // Clear status for next time
+                loginStatus.textContent = ''; 
             }, 500);
         }
 
         function handleLogout() {
-            // Logs out from current session but doesn't wipe local storage
             document.getElementById('main-app').style.display = 'none';
             document.getElementById('login-overlay').style.display = 'flex';
             document.getElementById('login-overlay').style.opacity = '1';
-            
-            document.getElementById('loginStatus').textContent = '';
-            
             switchTab('quiz');
-            document.getElementById('chapters-view').style.display = 'none';
-            document.querySelector('.nav-tabs').style.display = 'flex';
-            document.getElementById('main-header').style.display = 'block';
         }
 
-        // --- NAVIGATION LOGIC ---
         function switchTab(tabName) {
-            quizView.classList.remove('active');
-            infoView.classList.remove('active');
-            communityView.classList.remove('active');
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
             chaptersView.style.display = 'none'; 
-
-            btnQuiz.classList.remove('active');
-            btnInfo.classList.remove('active');
-            btnCommunity.classList.remove('active');
+            
+            // Hide iframe and clear link when switching tabs
+            quizIframeContainer.style.display = 'none';
+            quizIframe.src = ""; 
 
             header.style.display = 'block';
             navTabs.style.display = 'flex';
 
-            if(tabName === 'quiz') {
-                quizView.classList.add('active');
-                btnQuiz.classList.add('active');
-            } else if (tabName === 'info') {
-                infoView.classList.add('active');
-                btnInfo.classList.add('active');
-            } else if (tabName === 'community') {
-                communityView.classList.add('active');
-                btnCommunity.classList.add('active');
-            }
+            document.getElementById(tabName + '-view').classList.add('active');
+            document.getElementById('btn-' + tabName).classList.add('active');
         }
 
-        subjects.forEach(subject => {
+        // Open Chapters
+        document.querySelectorAll('.subject').forEach(subject => {
             subject.addEventListener('click', function() {
-                const subjectName = this.querySelector('.subject-name').textContent;
-                const topics = this.querySelector('.topics').innerHTML;
-                
-                document.getElementById('chapters-title').textContent = subjectName;
-                document.getElementById('chapters-grid').innerHTML = topics;
+                document.getElementById('chapters-title').textContent = this.querySelector('.subject-name').textContent;
+                document.getElementById('chapters-grid').innerHTML = this.querySelector('.topics').innerHTML;
                 
                 quizView.classList.remove('active');
-                infoView.classList.remove('active');
-                communityView.classList.remove('active');
                 navTabs.style.display = 'none'; 
-                
                 chaptersView.style.display = 'block';
                 window.scrollTo(0, 0);
             });
         });
 
+        // Back from Chapters
         document.getElementById('back-to-dashboard').addEventListener('click', function() {
             chaptersView.style.display = 'none';
             switchTab('quiz'); 
-            
-            // Clear exam search box when going back
             document.getElementById('examSearch').value = '';
             filterExams();
         });
 
-        // --- EXAM SEARCH LOGIC (NEW) ---
+        // Search logic
         function filterExams() {
-            const input = document.getElementById('examSearch');
-            const filter = input.value.toUpperCase();
-            const grid = document.querySelector('#quiz-view .subjects-grid');
-            const cards = grid.getElementsByClassName('subject');
-
-            for (let i = 0; i < cards.length; i++) {
-                // Yeh pooray card (Year + Andar ke hidden topics) ko search karega
-                let text = cards[i].textContent || cards[i].innerText;
-                if (text.toUpperCase().indexOf(filter) > -1) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
-            }
+            const filter = document.getElementById('examSearch').value.toUpperCase();
+            const cards = document.querySelectorAll('#quiz-view .subject');
+            cards.forEach(card => {
+                card.style.display = (card.textContent || card.innerText).toUpperCase().includes(filter) ? "" : "none";
+            });
         }
 
-        // --- INFO PDF SEARCH LOGIC ---
+        // Info PDF search logic
         function filterPDFs() {
-            const input = document.getElementById('pdfSearch');
-            const filter = input.value.toUpperCase();
-            const grid = document.getElementById('pdfGrid');
-            const cards = grid.getElementsByClassName('pdf-card');
-
-            for (let i = 0; i < cards.length; i++) {
-                let title = cards[i].querySelector(".pdf-title");
-                let txtValue = title.textContent || title.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
-            }
+            const filter = document.getElementById('pdfSearch').value.toUpperCase();
+            const cards = document.querySelectorAll('.pdf-card');
+            cards.forEach(card => {
+                card.style.display = (card.textContent || card.innerText).toUpperCase().includes(filter) ? "" : "none";
+            });
         }
 
-        // --- TOAST LOGIC ---
         function showToast(message) {
             var x = document.getElementById("toast");
             x.textContent = message;
@@ -789,27 +749,44 @@
             setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
         }
 
-        // --- CLICK INTERCEPTION ---
+        // --- CLICK INTERCEPTION & IFRAME LOGIC ---
         document.getElementById('chapters-grid').addEventListener('click', function(e) {
             const link = e.target.closest('.topic-link');
             if (link) {
                 e.preventDefault(); 
 
-                // 1. Handle Locked Chapters
                 if(link.classList.contains('locked')) {
                     showToast("Quiz Will Upload soon 🚀");
                     return;
                 }
 
-                // 2. Handle Unlocked Chapters
-                const href = link.getAttribute('href');
+                let href = link.getAttribute('href');
                 if (!href || href === '#' || href === '' || href.trim() === '') {
                     showToast("Quiz Will Upload soon 🚀"); 
                 } else {
-                    window.open(href, '_blank');
+                    // Force embedded mode for Google Forms
+                    if(href.includes('docs.google.com/forms') && !href.includes('embedded=true')) {
+                        href += (href.includes('?') ? '&' : '?') + 'embedded=true';
+                    }
+
+                    chaptersView.style.display = 'none';
+                    iframeTitle.textContent = link.querySelector('.topic-name').textContent;
+                    
+                    quizIframe.src = href;
+                    quizIframeContainer.style.display = 'block';
+                    window.scrollTo(0, 0);
                 }
             }
         });
+
+        // Close Exam Viewer
+        document.getElementById('close-quiz-btn').addEventListener('click', function() {
+            quizIframeContainer.style.display = 'none';
+            quizIframe.src = ""; // Clear iframe so it stops running
+            chaptersView.style.display = 'block';
+            window.scrollTo(0, 0);
+        });
+
     </script>
 </body>
 </html>
